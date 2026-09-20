@@ -1,0 +1,186 @@
+{
+  "name": "Phase3 - Reserve Stock",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "order_id"
+            },
+            {
+              "name": "product_id"
+            },
+            {
+              "name": "business_id"
+            },
+            {
+              "name": "quantity",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "bd07c98e-398b-4f54-975f-62a343fbc6b6",
+      "name": "When Called by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wpejpezojimibyvdzxmc.supabase.co/rest/v1/rpc/reserve_stock",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"p_order_id\": $json.order_id, \"p_product_id\": $json.product_id, \"p_business_id\": $json.business_id, \"p_quantity\": $json.quantity } }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "6edc7138-227d-401b-bcc9-5ba01a3fc6ac",
+      "name": "Call reserve_stock RPC",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "bS2PjYyUO47Gfwl6",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "http_status",
+              "value": "={{ $json.statusCode }}",
+              "type": "number"
+            },
+            {
+              "id": "r2",
+              "name": "success",
+              "value": "={{ $json.body.success ?? false }}",
+              "type": "boolean"
+            },
+            {
+              "id": "r3",
+              "name": "idempotent",
+              "value": "={{ $json.body.idempotent ?? false }}",
+              "type": "boolean"
+            },
+            {
+              "id": "r4",
+              "name": "error_code",
+              "value": "={{ $json.body.error_code ?? null }}",
+              "type": "string"
+            },
+            {
+              "id": "r5",
+              "name": "previous_stock",
+              "value": "={{ $json.body.previous_stock ?? null }}",
+              "type": "number"
+            },
+            {
+              "id": "r6",
+              "name": "new_stock",
+              "value": "={{ $json.body.new_stock ?? null }}",
+              "type": "number"
+            },
+            {
+              "id": "r7",
+              "name": "available_to_sell",
+              "value": "={{ $json.body.available_to_sell ?? null }}",
+              "type": "number"
+            },
+            {
+              "id": "r8",
+              "name": "raw_response",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7067508d-cfc5-4dbf-86bf-f42f5e6e55a9",
+      "name": "Normalize Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Reserve Stock (RPC wrapper)\n\nThin wrapper: calls the approved reserve_stock RPC and nothing else. No direct UPDATE on ops_products ever happens here - all stock mutation is inside the Postgres function. Called by the Lifecycle Orchestrator for each Pending order.",
+        "color": 4
+      },
+      "id": "fd8cb304-d3d9-411b-bb04-84a6ad82d8b3",
+      "name": "Sticky Note 4fb4b31a",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Called by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Call reserve_stock RPC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call reserve_stock RPC": {
+      "main": [
+        [
+          {
+            "node": "Normalize Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "926728a9-696e-4b93-a6f7-ab8b473a6700",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "84a950de87a95a9b48bcc0a721b82df78f7caebcba22e1350f8b4ca8a494e997"
+  },
+  "nodeGroups": [],
+  "id": "xHaZJBNi97YlYqdb",
+  "tags": []
+}
